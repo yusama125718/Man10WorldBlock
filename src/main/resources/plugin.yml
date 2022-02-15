@@ -1,0 +1,15 @@
+name: Man10WorldBlock
+version: '${project.version}'
+main: yusama125718_208292ihcuobust.man10worldblock.Man10WorldBlock
+api-version: 1.17
+
+commands:
+  mwblocer:
+    description: man10worldblock
+    usage: /<command> [text] [text]
+
+permissions:
+  mwblocker.op:
+    default: op
+  mwblocer.player:
+    default: op
