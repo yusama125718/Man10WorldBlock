@@ -244,10 +244,9 @@ public final class Man10WorldBlock extends JavaPlugin implements Listener, Comma
         {
             if (targetworld.contains(eventplayer.getLocation().getWorld().getName()))
             {
-                Location playerlocation = eventplayer.getLocation();
-                playerlocation.setWorld(event.getFrom());
+                Location playerlocation = event.getFrom().getSpawnLocation();
                 eventplayer.teleport(playerlocation);
-                eventplayer.spigot().respawn();
+                eventplayer.sendMessage("§b[Man10WorldBlocker]§f あなたは許可されていないワールドに入ろうとしたのでリスポーンしました。");
             }
         }
     }
