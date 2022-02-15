@@ -4,7 +4,7 @@ main: yusama125718_208292ihcuobust.man10worldblock.Man10WorldBlock
 api-version: 1.17
 
 commands:
-  mwblocer:
+  mwblock:
     description: man10worldblock
     usage: /<command> [text] [text]
 

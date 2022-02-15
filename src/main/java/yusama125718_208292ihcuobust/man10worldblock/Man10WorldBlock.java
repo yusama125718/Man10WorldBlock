@@ -16,6 +16,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.invoke.SwitchPoint;
 import java.util.*;
 
+import static javax.swing.UIManager.get;
+
 public final class Man10WorldBlock extends JavaPlugin implements Listener, CommandExecutor, TabCompleter
 {
     JavaPlugin mblocker;
@@ -30,13 +32,28 @@ public final class Man10WorldBlock extends JavaPlugin implements Listener, Comma
         this.mblocker = this;
         saveDefaultConfig();
         system = mblocker.getConfig().getBoolean("System");
-        for (int i = 0; i < Objects.requireNonNull(mblocker.getConfig().getList("allowplayerlist")).size(); i++)
+        String addplayer;
+        try
         {
-            allowplayer.add((UUID) (Objects.requireNonNull(mblocker.getConfig().getList("allowplayerlist"))).get(i));
+            for (int i = 0; i < Objects.requireNonNull(mblocker.getConfig().getList("allowplayerlist")).size(); i++)
+            {
+                blockplayer.add(UUID.fromString(Objects.requireNonNull(mblocker.getConfig().getStringList("allowplayerlist")).get(i)));
+            }
         }
-        for (int i = 0; i < Objects.requireNonNull(mblocker.getConfig().getList("blockplayerlist")).size(); i++)
+        catch (NullPointerException e)
         {
-            blockplayer.add((UUID) (Objects.requireNonNull(mblocker.getConfig().getList("blockplayerlist"))).get(i));
+            Bukkit.broadcast("§b[Man10WorldBlocker]§r許可するプレイヤーのロードに失敗しました","mspawn.op");
+        }
+        try
+        {
+            for (int i = 0; i < Objects.requireNonNull(mblocker.getConfig().getList("blockplayerlist")).size(); i++)
+            {
+                blockplayer.add(UUID.fromString(Objects.requireNonNull(mblocker.getConfig().getStringList("blockplayerlist")).get(i)));
+            }
+        }
+        catch (NullPointerException e)
+        {
+            Bukkit.broadcast("§b[Man10WorldBlocker]§rブロックするプレイヤーのロードに失敗しました","mspawn.op");
         }
         targetworld.addAll(mblocker.getConfig().getStringList("targetworldlist"));
         getServer().getPluginManager().registerEvents(this, this);
@@ -113,10 +130,19 @@ public final class Man10WorldBlock extends JavaPlugin implements Listener, Comma
                             sender.sendMessage("§b[Man10WorldBlocker]§cそのプレイヤーはすでに追加されています");
                             return true;
                         }
+                        if (blockplayer.contains(addplayer.getUniqueId()))
+                        {
+                            blockplayer.remove(addplayer.getUniqueId());
+                            mblocker.getConfig().set("blockplayerlist",blockplayer);
+                            mblocker.saveConfig();
+                        }
                         allowplayer.add(addplayer.getUniqueId());
-                        mblocker.getConfig().set("allowplayerlist",allowplayer);
+                        List<String> addlist = mblocker.getConfig().getStringList("allowplayerlist");
+                        addlist.add(addplayer.getUniqueId().toString());
+                        mblocker.getConfig().set("allowplayerlist",addlist);
                         mblocker.saveConfig();
                         sender.sendMessage("§b[Man10WorldBlocker]§e 追加しました");
+                        return true;
                     }
                     if (args[1].equals("delete"))
                     {
@@ -132,9 +158,12 @@ public final class Man10WorldBlock extends JavaPlugin implements Listener, Comma
                             return true;
                         }
                         allowplayer.remove(deleteplayer.getUniqueId());
-                        mblocker.getConfig().set("allowplayerlist",allowplayer);
+                        List<String> addlist = mblocker.getConfig().getStringList("allowplayerlist");
+                        addlist.remove(deleteplayer.getUniqueId().toString());
+                        mblocker.getConfig().set("allowplayerlist",addlist);
                         mblocker.saveConfig();
                         sender.sendMessage("§b[Man10WorldBlocker]§e 削除しました");
+                        return true;
                     }
                 }
                 if (args[0].equals("block"))
@@ -158,9 +187,12 @@ public final class Man10WorldBlock extends JavaPlugin implements Listener, Comma
                             return true;
                         }
                         blockplayer.add(addplayer.getUniqueId());
-                        mblocker.getConfig().set("blockplayerlist",blockplayer);
+                        List<String> addlist = mblocker.getConfig().getStringList("blockplayerlist");
+                        addlist.add(addplayer.getUniqueId().toString());
+                        mblocker.getConfig().set("blockplayerlist",addlist);
                         mblocker.saveConfig();
                         sender.sendMessage("§b[Man10WorldBlocker]§e 追加しました");
+                        return true;
                     }
                     if (args[1].equals("delete"))
                     {
@@ -176,7 +208,12 @@ public final class Man10WorldBlock extends JavaPlugin implements Listener, Comma
                             return true;
                         }
                         blockplayer.remove(deleteplayer.getUniqueId());
+                        List<String> addlist = mblocker.getConfig().getStringList("blockplayerlist");
+                        addlist.remove(deleteplayer.getUniqueId().toString());
+                        mblocker.getConfig().set("blockplayerlist",addlist);
+                        mblocker.saveConfig();
                         sender.sendMessage("§b[Man10WorldBlocker]§e 削除しました");
+                        return true;
                     }
                 }
                 if (args[0].equals("world"))
@@ -244,8 +281,10 @@ public final class Man10WorldBlock extends JavaPlugin implements Listener, Comma
         {
             if (targetworld.contains(eventplayer.getLocation().getWorld().getName()))
             {
-                Location playerlocation = event.getFrom().getSpawnLocation();
+                Location playerlocation = eventplayer.getLocation();
+                playerlocation.setWorld(event.getFrom());
                 eventplayer.teleport(playerlocation);
+                eventplayer.setHealth(0);
                 eventplayer.sendMessage("§b[Man10WorldBlocker]§f あなたは許可されていないワールドに入ろうとしたのでリスポーンしました。");
             }
         }
